@@ -35,6 +35,10 @@ const routesPrivates: RouteConfig[] = [
     component: lazy(() => import('./pages/private/users/Users')),
   },
   {
+    path: '/events',
+    component: lazy(() => import('./pages/private/event/Events')),
+  },
+  {
     path: '/profile',
     component: lazy(() => import('./pages/public/auth/register/Register')),
   }
