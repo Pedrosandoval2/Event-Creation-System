@@ -3,45 +3,35 @@ export interface Event {
     id: number;
     name_event: string;
     description?: string;
-    price_unit: string;
+    price_unit: number;
     start_date: string;
     end_date: string;
     createdAt: string;
     userCreate: string;
     totalPayments: number;
     totalQuantityCustomers: number;
-    totalAmount: string;
+    totalAmount: number;
 }
 
 export interface CreateEventFormData {
     name_event: string;
-    description: string;
-    price_unit: string;
-    start_date: Date;
-    end_date: Date;
+    description?: string;
+    price_unit: number;
+    start_date: string;
+    end_date: string;
 }
 
 export interface Customer {
     id: number
-    name: string
-}
-
-export interface EventCustomer {
-    id: number
-    customer: Customer
-    event: {
-        id: number
-        title: string
-    }
-    description: string
-    payments: Array<{
-        id: number
-        amount: number
-        method: string
-        date: string
-    }>
+    firstName: string
+    lastName: string
+    isMember: boolean
+    phone: string
     createdAt: string
     isActive: boolean
-    quantity: number
-    total_price: number
+}
+
+export interface EventFormValuesI {
+    id: number;
+    data: CreateEventFormData;
 }
