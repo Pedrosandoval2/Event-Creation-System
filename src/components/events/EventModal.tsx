@@ -6,35 +6,53 @@ import { Textarea } from "@/components/ui/textarea"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { createEventSchema } from "@/pages/private/event/schema/createEvent"
-import type { CreateEventFormData } from "@/pages/private/event/interfaces/Event"
+import type { CreateEventFormData, EventFormValuesI } from "@/pages/private/event/interfaces/event"
+import { updateEvents } from "@/services/events/updateEvent"
+import { toast } from "react-toastify"
+import { createEvents } from "@/services/events/createEvents"
+import { getErrorFetch } from "@/utils/getErrorFetch"
 
 
 interface EventModalProps {
     readonly isOpen: boolean
+    readonly onReloadEvent: () => void
     readonly onClose: () => void
-    readonly event: CreateEventFormData | null;
+    readonly initialValue: EventFormValuesI | undefined;
     readonly isEditing: boolean
 }
 
-export function EventModal({ isOpen, onClose, event, isEditing }: EventModalProps) {
+export function EventModal({ isOpen, onClose, onReloadEvent, initialValue, isEditing }: EventModalProps) {
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm<CreateEventFormData>({
-        defaultValues: event || {
-            name_event: '',
-            description: '',
-            price_unit: '',
-            start_date: new Date(),
-            end_date: new Date(),
+        defaultValues: {
+            name_event: initialValue?.data.name_event,
+            description: initialValue?.data.description,
+            price_unit: initialValue?.data.price_unit,
+            start_date: initialValue?.data.start_date,
+            end_date: initialValue?.data.end_date,
         },
         mode: "onChange",
         resolver: yupResolver(createEventSchema),
     });
 
-    const onSubmit = (data: CreateEventFormData) => {
-        console.log("Form data:", data)
+    const onSubmit = async (data: CreateEventFormData) => {
+        try {
+            const response = initialValue
+                ? await updateEvents({ id: initialValue?.id || 0, payload: data })
+                : await createEvents(data);
+            console.log("🚀 ~ onSubmit ~ response:", response)
+            getErrorFetch(response);
+            toast.success("Evento actualizado correctamente");
+            onReloadEvent();
+            onClose();
+
+        } catch (error) {
+            console.error("Error al enviar el formulario:", error);
+
+        }
     }
 
     return (
@@ -50,7 +68,7 @@ export function EventModal({ isOpen, onClose, event, isEditing }: EventModalProp
                         <Input
                             id="name_event"
                             {...register("name_event")}
-                            placeholder="Ej: Pollada Benéfica"
+                            placeholder="Ej: Pollada General"
                         />
                         {errors.name_event && <p className="text-sm text-red-500">{errors.name_event.message}</p>}
                     </div>
