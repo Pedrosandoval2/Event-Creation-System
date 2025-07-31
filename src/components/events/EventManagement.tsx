@@ -11,12 +11,13 @@ import { Input } from "../ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { DeleteConfirmModal } from './DeleteConfirmModal';
-import type { CreateEventFormData, Customer, Event, EventCustomer } from "@/pages/private/event/interfaces/Event"
+import type { Customer, Event, EventCustomer, EventFormValuesI } from "@/pages/private/event/interfaces/event"
 import { formatDate } from "@/utils/formatDate"
 import { formatCurrency } from "@/utils/formatCurrency"
 import { useGetEvents } from "@/hooks/useGetEvents"
 import { useDebounce } from "@/hooks/useDebounce"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { customerEvent } from "@/services/events/getCustomerEvent"
 
 
 const initialCustomers: Customer[] = [
@@ -47,18 +48,24 @@ export default function EventManagement() {
     const [search, setSearch] = useState('');
     const [currentQuantity, setCurrentQuantity] = useState(limit?.toString());
     const debouncedSearch = useDebounce(search);
-    console.log("🚀 ~ EventManagement ~ data:", data)
 
-    const [customers] = useState<Customer[]>(initialCustomers)
+    // const [customers] = useState<Customer[]>(initialCustomers)
     const [eventCustomers, setEventCustomers] = useState<EventCustomer[]>(initialEventCustomers)
 
-    const [selectedEvent, setSelectedEvent] = useState<CreateEventFormData | null>(null)
-    const [selectedEventForCustomers, setSelectedEventForCustomers] = useState<Event | null>(null)
-    const [eventToDelete, setEventToDelete] = useState<Event | null>(null)
+    const [selectedEvent, setSelectedEvent] = useState<EventFormValuesI>()
+
+    const [event, setEvent] = useState<{ id: number; name_event: string; price_unit: number }>({
+        id: 0,
+        name_event: "Evento",
+        price_unit: 0,
+    })
+
+    // const [eventToDelete, setEventToDelete] = useState<Event | null>(null)
     const [isEventModalOpen, setIsEventModalOpen] = useState(false)
-    const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false)
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    // const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
+
+    const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false)
 
     useEffect(() => {
         fetchEvents({ query: debouncedSearch || null, page, limit: Number(currentQuantity) });
@@ -66,43 +73,44 @@ export default function EventManagement() {
     }, [debouncedSearch, page, currentQuantity])
 
     // Obtener clientes de un evento específico
-    const getEventCustomers = (eventId: number) => {
-        return eventCustomers.filter((ec) => ec.event.id === eventId)
+    // const getEventCustomers = (eventId: number) => {
+    //     return eventCustomers.filter((ec) => ec.event.id === eventId)
+    // }
+
+    const onReloadEvent = () => {
+        setSelectedEvent(undefined)
+        fetchEvents({ query: debouncedSearch || null, page, limit: Number(currentQuantity) });
+
     }
 
     // Handlers para eventos
     const handleCreateEvent = () => {
-        setSelectedEvent(null)
+        setSelectedEvent(undefined)
         setIsEditing(false)
         setIsEventModalOpen(true)
     }
 
-    const handleEditEvent = (event: CreateEventFormData) => {
+    const handleEditEvent = (event: EventFormValuesI) => {
         setSelectedEvent(event)
         setIsEditing(true)
         setIsEventModalOpen(true)
     }
 
     const handleDeleteEvent = (event: Event) => {
-        setEventToDelete(event)
-        setIsDeleteModalOpen(true)
+        // setEventToDelete(event)
+        // setIsDeleteModalOpen(true)
     }
 
-    const confirmDeleteEvent = () => {
+    // const confirmDeleteEvent = () => {
 
-    }
+    // }
 
-    const handleSaveCustomer = (customerData: Omit<EventCustomer, "id" | "createdAt">) => {
-        const newCustomer: EventCustomer = {
-            ...customerData,
-            id: Math.max(...eventCustomers.map((ec) => ec.id), 0) + 1,
-            createdAt: new Date().toISOString(),
-        }
-        setEventCustomers([...eventCustomers, newCustomer])
-    }
-
-    const handleManageCustomers = (event: Event) => {
-        setSelectedEventForCustomers(event)
+    const handleManageCustomers = async (event: Event) => {
+        setEvent({
+            id: event.id,
+            name_event: event.name_event,
+            price_unit: event.price_unit,
+        })
         setIsCustomerModalOpen(true)
     }
 
@@ -149,7 +157,6 @@ export default function EventManagement() {
             {/* Lista de eventos */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {!isLoading && data?.map((event) => {
-                    console.log("🚀 ~ event:", event)
                     // const stats = getEventStats(event.id)
                     return (
                         <Card key={event.id} className="hover:shadow-lg transition-shadow dark:hover:shadow-xl">
@@ -160,8 +167,8 @@ export default function EventManagement() {
                                         <CardDescription className="mt-1">{event?.description}</CardDescription>
                                     </div>
                                     <div className="flex items-center flex-col gap-2">
-                                        <Badge variant="secondary"> Unidad. {formatCurrency(Number.parseFloat(event.price_unit))}</Badge>
-                                        <Badge variant="secondary"> Total. {formatCurrency(Number.parseFloat(event.totalAmount))}</Badge>
+                                        <Badge variant="secondary"> Unidad. {formatCurrency(event.price_unit)}</Badge>
+                                        <Badge variant="secondary"> Total. {formatCurrency(event.totalAmount)}</Badge>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -177,7 +184,7 @@ export default function EventManagement() {
                                 {/* Estadísticas */}
                                 <div className="grid grid-cols-3 gap-2 text-center">
                                     <div className="space-y-1">
-                                        <div className="flex items-center justify-center gap-1">
+                                        <div className="flex items-center justify-center gap-1" >
                                             <Users className="h-3 w-3" />
                                             <span className="text-xs text-muted-foreground">Clientes</span>
                                         </div>
@@ -198,7 +205,7 @@ export default function EventManagement() {
                                             <span className="text-xs text-muted-foreground">Pendiente</span>
                                         </div>
                                         <div className="font-semibold text-red-600 dark:text-red-400">
-                                            {formatCurrency(Number.parseFloat(event.totalAmount) - event.totalPayments)}
+                                            {formatCurrency(event.totalAmount - event.totalPayments)}
                                         </div>
                                     </div>
                                 </div>
@@ -210,11 +217,14 @@ export default function EventManagement() {
                                         Clientes
                                     </Button>
                                     <Button variant="outline" size="sm" onClick={() => handleEditEvent({
-                                        name_event: event.name_event,
-                                        description: event.description || "",
-                                        price_unit: event.price_unit,
-                                        start_date: new Date(event.start_date),
-                                        end_date: new Date(event.end_date)
+                                        id: event.id,
+                                        data: {
+                                            name_event: event.name_event,
+                                            description: event.description,
+                                            price_unit: event.price_unit,
+                                            start_date: event.start_date,
+                                            end_date: event.end_date,
+                                        }
                                     })}>
                                         <Edit className="h-4 w-4" />
                                     </Button>
@@ -279,23 +289,28 @@ export default function EventManagement() {
             </div>
 
             {/* Modales */}
-            <EventModal
-                isOpen={isEventModalOpen}
-                onClose={() => setIsEventModalOpen(false)}
-                event={selectedEvent}
-                isEditing={isEditing}
-            />
+            {isEventModalOpen && (
+                <EventModal
+                    isOpen={isEventModalOpen}
+                    onReloadEvent={onReloadEvent}
+                    onClose={() => setIsEventModalOpen(false)}
+                    initialValue={selectedEvent}
+                    isEditing={isEditing}
+                />
+            )}
 
-            {/* <CustomerModal
-                isOpen={isCustomerModalOpen}
-                onClose={() => setIsCustomerModalOpen(false)}
-                onSave={handleSaveCustomer}
-                event={selectedEventForCustomers}
-                customers={customers}
-                eventCustomers={getEventCustomers(selectedEventForCustomers?.id || 0)}
-            />
+            {isCustomerModalOpen && (
+                <CustomerModal
+                    isOpen={isCustomerModalOpen}
+                    onClose={() => setIsCustomerModalOpen(false)}
+                    event={event}
+                    // event={selectedEventForCustomers}
+                    // customers={customers}
+                    // eventCustomers={getEventCustomers(selectedEventForCustomers?.id || 0)}
+                />
+            )}
 
-            <DeleteConfirmModal
+            {/* <DeleteConfirmModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={confirmDeleteEvent}

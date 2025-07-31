@@ -1,4 +1,3 @@
-import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -6,152 +5,70 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { UserPlus } from "lucide-react"
-
-interface Customer {
-  id: number
-  name: string
-}
-
-interface Event {
-  id: number
-  name_event: string
-  price_unit: string
-}
-
-interface Payment {
-  id: number
-  amount: number
-  method: string
-  date: string
-}
-
-interface EventCustomer {
-  id: number
-  customer: Customer
-  event: {
-    id: number
-    title: string
-  }
-  description: string
-  payments: Payment[]
-  createdAt: string
-  isActive: boolean
-  quantity: number
-  total_price: number
-}
+import { formatCurrency } from "@/utils/formatCurrency"
+import type { CreateCustomerEventFormData, EventCustomer } from "@/pages/private/event/interfaces/customerEvent"
+import type { Customer, Event } from "@/pages/private/event/interfaces/event"
+import { useForm } from "react-hook-form"
+import { yupResolver } from '@hookform/resolvers/yup';
+import { getCustomers } from "@/services/events/getCustomers"
+import { eventPaymentSchema } from "@/pages/private/event/schema/createCustomerEvent"
 
 interface AddCustomerModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSave: (customer: Omit<EventCustomer, "id" | "createdAt">) => void
-  event: Event | null
-  availableCustomers: Customer[]
+  readonly isOpen: boolean
+  readonly onClose: () => void
+  readonly event: Pick<Event, "id" | "name_event" | "price_unit">
+  readonly initialValue: EventCustomer
 }
 
-export function AddCustomerModal({ isOpen, onClose, onSave, event, availableCustomers }: AddCustomerModalProps) {
-  const [formData, setFormData] = useState({
-    customerId: "",
-    description: "",
-    quantity: "1",
-    paymentAmount: "",
-    paymentMethod: "Efectivo",
-  })
+const payments = [
+  { id: 1, title: "Efectivo" },
+  { id: 3, title: "Yape" },
+  { id: 4, title: "Plin" },
+]
+// TODO: Realizar el multiple payments logic
+export function AddCustomerModal({ isOpen, onClose, event, initialValue, }: AddCustomerModalProps) {
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [customers, setCustomers] = useState<Customer[]>([])
+
+  const { register, handleSubmit, formState: { errors }, watch, reset } = useForm<CreateCustomerEventFormData>({
+    defaultValues: initialValue,
+    mode: "onBlur",
+    resolver: yupResolver(eventPaymentSchema(event.price_unit))
+  });
+
+  const onCloseModal = () => {
+    onClose();
+    reset()
+  }
+
+  const onSubmit = (data: CreateCustomerEventFormData) => {
+    console.log("Form data:", data)
+
+    onCloseModal();
+  }
+
+  const handleCustomers = async () => {
+    const customer = await getCustomers({ idEvent: event.id });
+    setCustomers(customer.data);
+  }
 
   useEffect(() => {
-    if (isOpen) {
-      setFormData({
-        customerId: "",
-        description: "",
-        quantity: "1",
-        paymentAmount: "",
-        paymentMethod: "Efectivo",
-      })
-      setErrors({})
-    }
-  }, [isOpen])
+    handleCustomers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event.id]);
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!formData.customerId) {
-      newErrors.customerId = "Selecciona un cliente"
-    }
-
-    if (!formData.quantity.trim()) {
-      newErrors.quantity = "La cantidad es requerida"
-    } else if (isNaN(Number.parseInt(formData.quantity)) || Number.parseInt(formData.quantity) <= 0) {
-      newErrors.quantity = "La cantidad debe ser un número válido mayor a 0"
-    }
-
-    if (
-      formData.paymentAmount &&
-      (isNaN(Number.parseFloat(formData.paymentAmount)) || Number.parseFloat(formData.paymentAmount) < 0)
-    ) {
-      newErrors.paymentAmount = "El monto debe ser un número válido mayor o igual a 0"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!event || !validateForm()) return
-
-    const selectedCustomer = availableCustomers.find((c) => c.id === Number.parseInt(formData.customerId))
-    if (!selectedCustomer) return
-
-    const quantity = Number.parseInt(formData.quantity)
-    const unitPrice = Number.parseFloat(event.price_unit)
-    const totalPrice = quantity * unitPrice
-
-    const payments: Payment[] = []
-    if (formData.paymentAmount && Number.parseFloat(formData.paymentAmount) > 0) {
-      payments.push({
-        id: 1,
-        amount: Number.parseFloat(formData.paymentAmount),
-        method: formData.paymentMethod,
-        date: new Date().toISOString(),
-      })
-    }
-
-    const customerData: Omit<EventCustomer, "id" | "createdAt"> = {
-      customer: selectedCustomer,
-      event: {
-        id: event.id,
-        title: event.name_event,
-      },
-      description: formData.description.trim() || `Reserva para ${quantity} ${quantity === 1 ? "persona" : "personas"}`,
-      payments,
-      isActive: true,
-      quantity,
-      total_price: totalPrice,
-    }
-
-    onSave(customerData)
-  }
-
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
-    }
-  }
-
-  const formatCurrency = (amount: number) => {
-    return `S/ ${amount.toFixed(2)}`
-  }
+  const quantity = watch("quantity", 0);
+  const paymentsMount = watch("paymentsMount", 0);
+  const totalAmount = quantity * event.price_unit;
 
   if (!event) return null
 
+
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onCloseModal}>
       <DialogContent className="sm:max-w-[500px] z-[60]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -159,57 +76,61 @@ export function AddCustomerModal({ isOpen, onClose, onSave, event, availableCust
             Agregar Cliente - {event.name_event}
           </DialogTitle>
           <div className="text-sm text-muted-foreground">
-            Precio unitario: {formatCurrency(Number.parseFloat(event.price_unit))}
+            Precio unitario: {formatCurrency(event.price_unit)}
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2 flex justify-start flex-col">
             <Label htmlFor="customerId">Cliente *</Label>
-            <Select value={formData.customerId} onValueChange={(value) => handleChange("customerId", value)}>
-              <SelectTrigger className={errors.customerId ? "border-red-500" : ""}>
-                <SelectValue placeholder="Selecciona un cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCustomers.map((customer) => (
-                  <SelectItem key={customer.id} value={customer.id.toString()}>
-                    {customer.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.customerId && <p className="text-sm text-red-500">{errors.customerId}</p>}
+
+            <select
+              id="customerId"
+              defaultValue="0"
+              {...register("customerId")}
+              className=" border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#09090B] focus:border-[#fff] dark:bg-[#09090B]"
+              required
+            >
+              <option value="0" disabled selected>Seleccione un cliente</option>
+              {
+                customers.map((customer) => (
+                  <option className="hover:bg-black text-white bg-[#09090B] focus:bg-[#1e1e2f]" key={customer.id} value={customer.id}>
+                    {customer.firstName} {customer.lastName} {customer.isMember ? "(Miembro)" : ""}
+                  </option>
+                ))
+              }
+            </select>
+
+            {errors.customerId && <p className="text-sm text-red-500">{errors.customerId.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="description">Descripción</Label>
             <Textarea
               id="description"
-              value={formData.description}
-              onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Descripción de la reserva (opcional)"
               rows={2}
+              {...register("description")}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="quantity">Cantidad *</Label>
-              <Input
+              {<Input
                 id="quantity"
                 type="number"
                 min="1"
-                value={formData.quantity}
-                onChange={(e) => handleChange("quantity", e.target.value)}
-                className={errors.quantity ? "border-red-500" : ""}
-              />
-              {errors.quantity && <p className="text-sm text-red-500">{errors.quantity}</p>}
+                {...register("quantity")}
+                placeholder="0"
+              />}
+              {errors.quantity && <p className="text-sm text-red-500">{errors.quantity.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label>Total a Pagar</Label>
               <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-semibold">
-                {formatCurrency((Number.parseInt(formData.quantity) || 0) * Number.parseFloat(event.price_unit))}
+                {formatCurrency(totalAmount)}
               </div>
             </div>
           </div>
@@ -217,7 +138,10 @@ export function AddCustomerModal({ isOpen, onClose, onSave, event, availableCust
           <Separator />
 
           <div className="space-y-4">
-            <h4 className="font-medium">Pago Inicial (Opcional)</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium">Pago Inicial (Opcional)</h4>
+              <button type="button" className="border-black border text-black py-1.5 px-3 rounded-md dark:border-cyan-50 dark:bg-[#09090B] dark:text-white">+</button>
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -226,53 +150,72 @@ export function AddCustomerModal({ isOpen, onClose, onSave, event, availableCust
                   id="paymentAmount"
                   type="number"
                   step="0.01"
-                  min="0"
-                  value={formData.paymentAmount}
-                  onChange={(e) => handleChange("paymentAmount", e.target.value)}
+                  min="1"
+                  max={totalAmount}
                   placeholder="0.00"
-                  className={errors.paymentAmount ? "border-red-500" : ""}
+                  {...register("paymentsMount")}
                 />
-                {errors.paymentAmount && <p className="text-sm text-red-500">{errors.paymentAmount}</p>}
+                <Input
+                  id="paymentAmount"
+                  type="number"
+                  step="0.01"
+                  min="1"
+                  max={totalAmount}
+                  placeholder="0.00"
+                  {...register("paymentsMount")}
+                />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 flex flex-col justify-end">
                 <Label htmlFor="paymentMethod">Método de Pago</Label>
-                <Select value={formData.paymentMethod} onValueChange={(value) => handleChange("paymentMethod", value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Efectivo">Efectivo</SelectItem>
-                    <SelectItem value="Tarjeta">Tarjeta</SelectItem>
-                    <SelectItem value="Transferencia">Transferencia</SelectItem>
-                    <SelectItem value="Yape">Yape</SelectItem>
-                    <SelectItem value="Plin">Plin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+                <select
+                  {...register("paymentMethod")}
+                  className=" border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#09090B] focus:border-[#fff] dark:bg-[#09090B]"
+                >
+                  {
+                    payments.map((payment) => (
+                      <option className="hover:bg-black text-white bg-[#09090B] focus:bg-[#1e1e2f]" key={payment.id} value={payment.id}>
+                        {payment.title}
+                      </option>
+                    ))
+                  }
+                </select>
+                <select
+                  {...register("paymentMethod")}
+                  className=" border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#09090B] focus:border-[#fff] dark:bg-[#09090B]"
+                >
+                  {
+                    payments.map((payment) => (
+                      <option className="hover:bg-black text-white bg-[#09090B] focus:bg-[#1e1e2f]" key={payment.id} value={payment.id}>
+                        {payment.title}
+                      </option>
+                    ))
+                  }
+                </select>
 
-            {formData.paymentAmount && Number.parseFloat(formData.paymentAmount) > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-md p-3">
+              </div>
+
+            </div>
+            <div>{errors.paymentsMount && <p className="text-sm text-red-500">{errors.paymentsMount.message}</p>}</div>
+
+            {paymentsMount > 0 && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-3 dark:bg-black dark:border-emerald-500">
                 <div className="text-sm">
                   <div className="flex justify-between">
                     <span>Total a pagar:</span>
                     <span className="font-semibold">
-                      {formatCurrency((Number.parseInt(formData.quantity) || 0) * Number.parseFloat(event.price_unit))}
+                      {formatCurrency(totalAmount)}
                     </span>
                   </div>
                   <div className="flex justify-between text-green-700">
                     <span>Pago inicial:</span>
-                    <span className="font-semibold">-{formatCurrency(Number.parseFloat(formData.paymentAmount))}</span>
+                    <span className="font-semibold">-{formatCurrency(watch('paymentsMount'))}</span>
                   </div>
                   <Separator className="my-2" />
                   <div className="flex justify-between font-semibold">
                     <span>Saldo pendiente:</span>
                     <span className="text-red-600">
-                      {formatCurrency(
-                        (Number.parseInt(formData.quantity) || 0) * Number.parseFloat(event.price_unit) -
-                          Number.parseFloat(formData.paymentAmount),
-                      )}
+                      {formatCurrency(totalAmount - paymentsMount)}
                     </span>
                   </div>
                 </div>
@@ -281,7 +224,7 @@ export function AddCustomerModal({ isOpen, onClose, onSave, event, availableCust
           </div>
 
           <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onCloseModal}>
               Cancelar
             </Button>
             <Button type="submit">Agregar Cliente</Button>
