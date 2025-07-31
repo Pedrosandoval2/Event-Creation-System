@@ -1,5 +1,5 @@
 import axiosInstance from "@/api/axios.config";
-import type { Event } from "@/pages/private/event/interfaces/Event";
+import type { Event } from "@/pages/private/event/interfaces/event";
 
 interface EventsResponse {
     data: {
