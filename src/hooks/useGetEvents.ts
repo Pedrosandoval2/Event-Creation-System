@@ -1,4 +1,4 @@
-import type { Event } from "@/pages/private/event/interfaces/Event";
+import type { Event } from "@/pages/private/event/interfaces/event";
 import { getEvents, type ParamsI } from "@/services/events/getEvents";
 import { useState } from "react";
 
