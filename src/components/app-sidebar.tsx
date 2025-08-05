@@ -4,8 +4,6 @@ import type * as React from "react"
 import {
     ChevronUp,
     Home,
-    Search,
-    Settings,
     User2,
     Users,
     LogOut,
@@ -29,10 +27,8 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarGroup,
-    SidebarGroupContent,
     SidebarGroupLabel,
     SidebarHeader,
-    SidebarInput,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
@@ -40,8 +36,9 @@ import {
 } from "@/components/ui/sidebar"
 
 import { Link } from "react-router-dom"
+import { useAuthStore } from "@/store/authStore"
+import { getInitials } from "@/utils/formatName"
 
-// Menu items.
 const dataBase = {
     navMain: [
         {
@@ -65,26 +62,11 @@ const dataBase = {
             icon: UserPen,
         },
     ],
-    navSecondary: [
-        // {
-        //     title: "Profile",
-        //     url: "/profile",
-        //     icon: User2,
-        // },
-        // {
-        //     title: "Settings",
-        //     url: "/settings",
-        //     icon: Settings,
-        // },
-        // {
-        //     title: "Notifications",
-        //     url: "/notifications",
-        //     icon: Bell,
-        // },
-    ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+    const user = useAuthStore((state) => state.user);
 
     const handleLogout = () => {
         localStorage.removeItem('user')
@@ -109,14 +91,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
-                <form>
-                    <SidebarGroup className="py-0">
-                        <SidebarGroupContent className="relative">
-                            <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 select-none opacity-50" />
-                            <SidebarInput placeholder="Search..." className="pl-8" />
-                        </SidebarGroupContent>
-                    </SidebarGroup>
-                </form>
             </SidebarHeader>
 
             <SidebarContent>
@@ -135,22 +109,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         ))}
                     </SidebarMenu>
                 </SidebarGroup>
-
-                <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-                    <SidebarGroupLabel>Account</SidebarGroupLabel>
-                    {/* <SidebarMenu>
-                        {dataBase.navSecondary.map((item) => (
-                            <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton asChild>
-                                    <Link to={item.url}>
-                                        <item.icon />
-                                        <span>{item.title}</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        ))}
-                    </SidebarMenu> */}
-                </SidebarGroup>
             </SidebarContent>
 
             <SidebarFooter>
@@ -164,11 +122,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 >
                                     <Avatar className="h-8 w-8 rounded-lg">
                                         <AvatarImage src={"/placeholder.svg"} alt={'avatar image'} />
-                                        <AvatarFallback className="rounded-lg">JD</AvatarFallback>
+                                        <AvatarFallback className="rounded-lg">{getInitials({
+                                            firstName: user?.firstName || "",
+                                            lastName: user?.lastName || ""
+                                        })}</AvatarFallback>
                                     </Avatar>
                                     <div className="grid flex-1 text-left text-sm leading-tight">
-                                        <span className="truncate font-semibold">{'Pedro'}</span>
-                                        <span className="truncate text-xs">{'pedrosandovalespinoza2@gmail.com'}</span>
+                                        <span className="truncate font-semibold">{user?.firstName}</span>
+                                        <span className="truncate text-xs">{user?.email}</span>
                                     </div>
                                     <ChevronUp className="ml-auto size-4" />
                                 </SidebarMenuButton>
@@ -186,8 +147,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                             <AvatarFallback className="rounded-lg">JD</AvatarFallback>
                                         </Avatar>
                                         <div className="grid flex-1 text-left text-sm leading-tight">
-                                            <span className="truncate font-semibold">{'Pedro 2'}</span>
-                                            <span className="truncate text-xs">{'pedrosandoval@gmail.com'}</span>
+                                            <span className="truncate font-semibold">{user?.firstName}</span>
+                                            <span className="truncate text-xs">{user?.email}</span>
                                         </div>
                                     </div>
                                 </DropdownMenuLabel>
@@ -197,12 +158,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                         <Link to="/profile">
                                             <User2 />
                                             Profile
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link to="/settings">
-                                            <Settings />
-                                            Settings
                                         </Link>
                                     </DropdownMenuItem>
                                 </DropdownMenuGroup>
