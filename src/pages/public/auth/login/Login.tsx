@@ -21,13 +21,12 @@ const Login = () => {
                 </div>
 
                 {/* Right side - Image */}
-                <div className="hidden lg:block relative bg-muted">
-                    {/* <Image src="/placeholder.svg?height=1080&width=1920" alt="Authentication" fill className="object-cover" /> */}
-                    <div className="absolute inset-0 bg-black/20" />
-                    <div className="absolute bottom-8 left-8 text-white">
-                        <h2 className="text-2xl font-bold mb-2">Join thousands of users</h2>
-                        <p className="text-lg opacity-90">Experience the power of our platform</p>
-                    </div>
+                <div className="hidden lg:block relative bg-muted w-[100%] max-w-[1200px] mx-auto h-full">
+                    <img
+                        src="/public/assets/MARIATEGUI.webp"
+                        className="absolute inset-0 w-full h-full object-cover"
+                        alt="Logo"
+                    />
                 </div>
             </div>
         )
