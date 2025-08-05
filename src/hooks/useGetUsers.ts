@@ -10,7 +10,6 @@ export const useGetUsers = () => {
     const [totalPages, setTotalPages] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    console.log("🚀 ~ useGetUsers ~ data:", data)
 
     const fetchUsers = async ({ query, page, limit }: ParamsI) => {
         setIsLoading(true);

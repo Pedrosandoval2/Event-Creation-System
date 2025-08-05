@@ -65,8 +65,11 @@ export function AddCustomerModal({ isOpen, onClose, event, initialValue, handleR
       setIsLoading(true);
 
       const response = typeEditOrAdd ? await createCustomerEvent(data) : await updateCustomerEvent({ id: openModalType.customerEventId, payload: data });
-      console.log("🚀 ~ onSubmit ~ response:", response)
 
+      if (response.status !== 200 && response.status !== 201) {
+        toast.error("Error al crear el cliente del evento");
+        return;
+      }
       toast.success("Cliente agregado correctamente");
       handleReloadCustomers();
       onReloadEvent();

@@ -169,25 +169,23 @@ export function CustomerModal({ isOpen, onClose, event, onReloadEvent }: Custome
                                                         <CreditCard className="h-4 w-4" />
                                                         Pagos Realizados
                                                     </div>
-                                                    {eventCustomer.payments.map((payment) => {
-                                                        console.log("🚀 ~ CustomerModal ~ payment:", payment)
-                                                        return (
-                                                            <div
-                                                                key={payment.id}
-                                                                className="flex justify-between items-center text-sm bg-muted/50 p-2 rounded"
-                                                            >
-                                                                <div className="flex items-center gap-2">
-                                                                    <DollarSign className="h-3 w-3 text-green-600" />
-                                                                    <span>{formatCurrency(payment.amount)}</span>
-                                                                    <span className="text-muted-foreground">({payment.method})</span>
-                                                                </div>
-                                                                <div className="flex items-center gap-1 text-muted-foreground">
-                                                                    <Calendar className="h-3 w-3" />
-                                                                    <span>{formatDateV2(payment.createdAt)}</span>
-                                                                </div>
+                                                    {eventCustomer.payments.map((payment) => (
+                                                        <div
+                                                            key={payment.id}
+                                                            className="flex justify-between items-center text-sm bg-muted/50 p-2 rounded"
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <DollarSign className="h-3 w-3 text-green-600" />
+                                                                <span>{formatCurrency(payment.amount)}</span>
+                                                                <span className="text-muted-foreground">({payment.method})</span>
                                                             </div>
-                                                        )
-                                                    })}
+                                                            <div className="flex items-center gap-1 text-muted-foreground">
+                                                                <Calendar className="h-3 w-3" />
+                                                                <span>{formatDateV2(payment.createdAt)}</span>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                    )}
                                                     <div className="flex justify-between items-center text-sm font-medium pt-1 border-t">
                                                         <span>Total Pagado:</span>
                                                         <span className="text-green-600">{formatCurrency(totalPaid)}</span>

@@ -29,16 +29,14 @@ export const LoginForm = () => {
         setIsLoading(true);
         try {
             const response = await loginServices(data);
-            console.log("🚀 ~ onSubmit ~ response:", response)
             if (response.status !== 201) {
                 toast.error("Login failed. Please check your credentials.");
             }
 
             const accessToken = response.data.accessToken;
-            console.log("🚀 ~ onSubmit ~ accessToken:", accessToken)
 
-            const user = decoded(accessToken)
-            setUser({ ...user, accessToken });
+            const user = await decoded(accessToken)
+            setUser({ firstName: user.firstName, lastName: user.lastName, accessToken: accessToken, id: user.id, email: user.email, role: user.role, isActive: user.isActive });
 
             toast.success(" Login successful!");
             navigate('/dashboard');
@@ -85,7 +83,7 @@ export const LoginForm = () => {
                             />
                             {errors.password && <span className='text-red-600'>{errors.password.message}</span>}
                         </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>
+                        <Button type="submit" className="w-full" disabled={isLoading} >
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -200,7 +200,7 @@ export default function EventManagement() {
                                 </div>
 
                                 {/* Creado por */}
-                                <div className="text-xs text-muted-foreground border-t pt-2">Creado por: {event.userCreate}</div>
+                                <div className="text-xs text-muted-foreground border-t pt-2 truncate">Creado por: {event.userCreate}</div>
                             </CardContent>
                         </Card>
                     )
