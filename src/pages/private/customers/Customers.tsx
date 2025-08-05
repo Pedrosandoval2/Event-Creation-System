@@ -21,6 +21,7 @@ import {
   Button,
   Input,
   Badge,
+  ThemeToggle,
 } from "@/components"
 import { Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, Users2, Loader2, Phone, Crown } from "lucide-react"
 import { useGetCustomers } from "@/hooks/useGetCustomers"
@@ -28,14 +29,8 @@ import { useDebounce } from "@/hooks/useDebounce"
 import { formatDateV2 } from "@/utils/formatDate"
 import type { Customer } from "./interfaces/customers"
 import { ModalCustomer } from "@/components/customers/ModalCustomer"
-import { getFullName } from "./utils/utils"
-
-
-
-const getInitials = (customer: Customer) => {
-  return `${customer.firstName[0]}${customer.lastName[0]}`.toUpperCase()
-}
-// Mock data con la estructura exacta que proporcionaste
+import { getFullName, getInitials } from "@/utils/formatName"
+import { ModalDeleteCustomer } from '../../../components/customers/ModalDeleteCustomer';
 
 export default function CustomersPage() {
 
@@ -45,7 +40,7 @@ export default function CustomersPage() {
   const [currentQuantity, setCurrentQuantity] = useState(limit?.toString());
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  // const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
 
@@ -55,19 +50,41 @@ export default function CustomersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, currentQuantity, page])
 
+  const resetFetchCustomers = () => {
+    setSearch("");
+    setPage(1);
+    fetchCustomers({ query: "", page: 1, limit: 10 });
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     setSearch(e.target.value)
   }
 
+  const onClose = () => {
+    setIsEditDialogOpen(false);
+    setSelectedCustomer(null);
+  }
+
   const handleCloseEditCustomerDialog = () => {
     setIsEditDialogOpen(false);
     setSelectedCustomer(null);
+    resetFetchCustomers();
   }
   const handleEditCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
     setIsEditDialogOpen(true);
+  }
+
+  const onCloseModalDeleteCustomer = () => {
+    setIsDeleteDialogOpen(false);
+    setSelectedCustomer(null);
+    resetFetchCustomers();
+  }
+
+  const handleDeleteCustomer = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsDeleteDialogOpen(true);
   }
 
   if (error) return <div>Error loading customers</div>
@@ -79,7 +96,7 @@ export default function CustomersPage() {
         <Separator orientation="vertical" className="mr-2 h-4" />
         <h1 className="text-lg font-semibold">Gestión de Clientes</h1>
         <div className="ml-auto">
-          {/* <ThemeToggle /> */}
+          <ThemeToggle />
         </div>
       </header>
 
@@ -202,7 +219,7 @@ export default function CustomersPage() {
                                       variant="secondary"
                                       className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
                                     >
-                                      Regular
+                                      Aspitante
                                     </Badge>
                                   )}
                                 </div>
@@ -227,14 +244,14 @@ export default function CustomersPage() {
                                   <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)}>
                                     <Edit className="h-4 w-4" />
                                   </Button>
-                                  <Button
+                                  {customer.isActive && <Button
                                     variant="ghost"
                                     size="sm"
-                                    // onClick={() => handleDeleteCustomer(customer)}
+                                    onClick={() => handleDeleteCustomer(customer)}
                                     className="text-red-600 hover:text-red-700"
                                   >
                                     <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                  </Button>}
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -299,13 +316,26 @@ export default function CustomersPage() {
       {isEditDialogOpen && (
         <ModalCustomer
           isOpen={isEditDialogOpen}
-          onClose={handleCloseEditCustomerDialog}
+          onClose={onClose}
           customer={selectedCustomer}
           typeModal={selectedCustomer ? "edit" : "create"}
           customerId={selectedCustomer?.id || 0}
+          handleCloseEditCustomerDialog={handleCloseEditCustomerDialog}
         />
       )}
       {/* Delete Customer Dialog */}
+      {isDeleteDialogOpen && (
+        <ModalDeleteCustomer
+          isDeleteDialogOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          setIsDeleteDialogOpen={onCloseModalDeleteCustomer}
+          deletingCustomer={{
+            id: selectedCustomer?.id || 0,
+            firstName: selectedCustomer?.firstName || "",
+            lastName: selectedCustomer?.lastName || ""
+          }}
+        />
+      )}
 
     </>
   )

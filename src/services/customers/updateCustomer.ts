@@ -1,13 +1,13 @@
 import axiosInstance from "@/api/axios.config";
-import type { Customer } from "@/pages/private/customers/interfaces/customers";
+import type { CreateCustomer } from "@/pages/private/customers/interfaces/customers";
 
 interface UpdateEventPayload {
     id: number;
-    payload: Omit<Customer, 'id' | 'createdAt'>;
+    payload: CreateCustomer;
 }
 
 export const updateCustomer = ({ id, payload }: UpdateEventPayload) => {
-    return axiosInstance.patch(`customers/update/${id}`, payload)
+    return axiosInstance.patch(`customers/update/${id}`, payload);
 }
 
 

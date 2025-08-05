@@ -5,7 +5,7 @@ import { createCustomer } from "@/services/customers/createCustomer";
 import { updateCustomer } from "@/services/customers/updateCustomer";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 interface Props {
@@ -14,33 +14,30 @@ interface Props {
     customer: CreateCustomer | null;
     typeModal: "edit" | "create";
     customerId: number; // Optional, only needed for edit mode
+    handleCloseEditCustomerDialog: () => void; // Callback to close the edit dialog
 }
 
 const initialCustomer: CreateCustomer = {
     firstName: "",
     lastName: "",
-    phone: "",
+    phone: undefined,
     isMember: false,
-    isActive: true,
+    isActive: false,
 }
 
 // Error porqué no da el botón y listo.
 
-export const ModalCustomer = ({ isOpen, onClose, customer, typeModal, customerId }: Props) => {
+export const ModalCustomer = ({ isOpen, onClose, customer, typeModal, customerId, handleCloseEditCustomerDialog }: Props) => {
 
     const [loading, setLoading] = useState(false);
 
-    const { register, handleSubmit, formState: { errors }, getValues } = useForm<CreateCustomer>({
+    const { register, handleSubmit, formState: { errors }, control } = useForm<CreateCustomer>({
         defaultValues: customer || initialCustomer,
-        mode: "onBlur",
+        mode: "onChange",
         resolver: yupResolver(customerSchema)
     });
 
-    console.log("🚀 ~ ModalCustomer ~ getValues:", getValues());
-
-    console.log("🚀 ~ ModalCustomer ~ errors:", errors)
     const onSubmit = async (data: CreateCustomer) => {
-        console.log("🚀 ~ onSubmit ~ data:", data)
         try {
             setLoading(true);
             const response = typeModal === "edit"
@@ -49,6 +46,7 @@ export const ModalCustomer = ({ isOpen, onClose, customer, typeModal, customerId
 
             if (response.status === 200 || response.status === 201) {
                 toast.success(typeModal === "edit" ? "Cliente actualizado correctamente." : "Cliente creado correctamente.");
+                handleCloseEditCustomerDialog();
                 onClose();
             }
         } catch (error) {
@@ -58,20 +56,14 @@ export const ModalCustomer = ({ isOpen, onClose, customer, typeModal, customerId
         } finally {
             setLoading(false);
         }
-
     }
 
-    // Extract button text logic into a variable
-    // let buttonText: string;
-    // if (loading) {
-    //     buttonText = typeModal === "edit" ? "Guardando..." : "Agregando...";
-    // } else {
-    //     buttonText = typeModal === "edit" ? "Guardar cambios" : "Agregar cliente";
-    // }
+    const buttonText = typeModal === "edit" ? "Guardar Cambios" : "Crear Cliente";
+    const messageButton = loading ? "Guardando..." : buttonText;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(onSubmit)} id="customer-form">
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>{typeModal === "edit" ? "Editar Cliente" : "Agregar Cliente"}</DialogTitle>
@@ -99,11 +91,11 @@ export const ModalCustomer = ({ isOpen, onClose, customer, typeModal, customerId
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="phone">Teléfono</Label>
+                            <Label htmlFor="phone">Teléfono {"(+51)"}</Label>
                             <Input
                                 id="phone"
                                 type="tel"
-                                placeholder="+34 600 000 000"
+                                placeholder="933288124"
                                 {...register("phone")}
                             />
                             {errors.phone && <p className="text-sm text-red-600">{errors.phone.message}</p>}
@@ -113,9 +105,15 @@ export const ModalCustomer = ({ isOpen, onClose, customer, typeModal, customerId
                                 <Label>Miembro</Label>
                                 <p className="text-sm text-muted-foreground">¿Es miembro?</p>
                             </div>
-                            <Switch
-                                defaultChecked={customer?.isMember || false}
-                                {...register("isMember")}
+                            <Controller
+                                name="isMember"
+                                control={control}
+                                render={({ field: { value, onChange } }) => (
+                                    <Switch
+                                        checked={value}
+                                        onCheckedChange={onChange}
+                                    />
+                                )}
                             />
                             {errors.isMember && <p className="text-sm text-red-600">{errors.isMember.message}</p>}
                         </div>
@@ -124,9 +122,15 @@ export const ModalCustomer = ({ isOpen, onClose, customer, typeModal, customerId
                                 <Label>Estado Activo</Label>
                                 <p className="text-sm text-muted-foreground">¿Está activo el cliente?</p>
                             </div>
-                            <Switch
-                                defaultChecked={customer?.isMember || false}
-                                {...register("isActive")}
+                            <Controller
+                                control={control}
+                                name="isActive"
+                                render={({ field: { value, onChange } }) => (
+                                    <Switch
+                                        checked={value}
+                                        onCheckedChange={onChange}
+                                    />
+                                )}
                             />
                             {errors.isActive && <p className="text-sm text-red-600">{errors.isActive.message}</p>}
                         </div>
@@ -135,12 +139,12 @@ export const ModalCustomer = ({ isOpen, onClose, customer, typeModal, customerId
                         <Button variant="outline" onClick={() => onClose()}>
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? 'Guardando...' : 'Guardar Cambios'}
+                        <Button type="submit" form="customer-form" disabled={loading}>
+                            {messageButton}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </form>
-        </Dialog>
+            </form >
+        </Dialog >
     )
 }
