@@ -3,9 +3,11 @@ export interface UserI {
     firstName: string;
     lastName: string;
     email: string;
-    role: string;
+    role: Role;
     isActive: boolean;
 }
+
+export type CreateUserI = Omit<UserI, 'id'>;
 
 export interface UserFormValuesI {
     id: string;
@@ -26,4 +28,4 @@ export interface UserEditFormValuesI {
     isActive: boolean;
 }
 
-type Role = 'admin' | 'user';
+export type Role = 'admin' | 'user';
