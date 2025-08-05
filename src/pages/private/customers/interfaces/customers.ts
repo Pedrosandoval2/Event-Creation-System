@@ -8,3 +8,5 @@ export interface Customer {
     isActive: boolean;
     isMember: boolean;
 }
+
+export type CreateCustomer = Omit<Customer, 'id' | 'createdAt'>;
