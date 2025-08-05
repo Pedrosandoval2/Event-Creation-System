@@ -5,7 +5,7 @@ interface CreateCustomerPayload {
     payload: CreateCustomer;
 }
 
-export const createCustomer = (payload: CreateCustomerPayload) => {
+export const createCustomer = ({ payload }: CreateCustomerPayload) => {
     return axiosInstance.post(`customers/create`, payload)
 }
 
