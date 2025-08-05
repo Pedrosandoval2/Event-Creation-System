@@ -10,7 +10,8 @@ import {
     Users,
     LogOut,
     Files,
-    MonitorCog
+    MonitorCog,
+    UserPen
 } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -58,11 +59,11 @@ const dataBase = {
             url: "/users",
             icon: Users,
         },
-        // {
-        //     title: "Calendar",
-        //     url: "/calendar",
-        //     icon: Calendar,
-        // },
+        {
+            title: "Customers",
+            url: "/customers",
+            icon: UserPen,
+        },
     ],
     navSecondary: [
         // {
