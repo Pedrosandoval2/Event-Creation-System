@@ -1,5 +1,4 @@
 export const decoded = (token: string) => {
-    console.log("🚀 ~ decoded ~ token:", token)
     if (!token) {
         return ''
     }
@@ -9,8 +8,6 @@ export const decoded = (token: string) => {
     const decodedPayload = JSON.parse(
         atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
     );
-    
-    console.log("🚀 ~ decoded ~ decodedPayload:", decodedPayload)
 
     // Ahora puedes acceder a la información que está dentro del payload
     return decodedPayload;

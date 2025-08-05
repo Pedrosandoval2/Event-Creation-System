@@ -3,7 +3,6 @@ export const formatDate = (dateString: string) => {
 }
 
 export const formatDateV2 = (dateString: string) => {
-    console.log("🚀 ~ formatDateV2 ~ dateString:", dateString)
     return new Date(dateString).toLocaleDateString("es-ES", {
         year: "numeric",
         month: "short",
