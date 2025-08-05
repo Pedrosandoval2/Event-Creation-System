@@ -21,16 +21,6 @@ export interface CreateEventFormData {
     end_date: string;
 }
 
-export interface Customer {
-    id: number
-    firstName: string
-    lastName: string
-    isMember: boolean
-    phone: string
-    createdAt: string
-    isActive: boolean
-}
-
 export interface EventFormValuesI {
     id: number;
     data: CreateEventFormData;

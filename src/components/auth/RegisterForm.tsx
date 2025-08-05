@@ -18,7 +18,6 @@ export const RegisterForm = () => {
     const setUser = useAuthStore((state) => state.setUser);
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
-    console.log("🚀 ~ RegisterForm ~ isLoading:", isLoading)
     const { handleSubmit, register, formState: { errors } } = useForm<RegisterI>({
         resolver: yupResolver(RegisterSchema),
         mode: 'onChange'
@@ -29,7 +28,6 @@ export const RegisterForm = () => {
         setIsLoading(true);
         try {
             const response = await RegisterServices(data);
-            console.log("🚀 ~ onSubmit ~ response:", response)
             if (response.status !== 201) {
                 toast.error("Login failed. Please check your credentials.");
             }

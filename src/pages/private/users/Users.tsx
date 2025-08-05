@@ -30,7 +30,6 @@ import type { UserEditFormValuesI, UserFormValuesI } from "./interfaces/user"
 
 export default function Users() {
     const { data, error, isLoading, fetchUsers, page, setPage, limit, totalPages } = useGetUsers();
-    console.log("🚀 ~ Users ~ data:", data)
     const [search, setSearch] = useState('');
     const [currentQuantity, setCurrentQuantity] = useState(limit?.toString());
     const debouncedSearch = useDebounce(search);

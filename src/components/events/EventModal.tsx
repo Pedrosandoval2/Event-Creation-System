@@ -43,7 +43,9 @@ export function EventModal({ isOpen, onClose, onReloadEvent, initialValue, isEdi
             const response = initialValue
                 ? await updateEvents({ id: initialValue?.id || 0, payload: data })
                 : await createEvents(data);
-            console.log("🚀 ~ onSubmit ~ response:", response)
+
+            if (response.status !== 200 && response.status !== 201) return toast.error('Error al crear el evento');
+
             getErrorFetch(response);
             toast.success("Evento actualizado correctamente");
             onReloadEvent();

@@ -16,7 +16,6 @@ export const useGetEvents = () => {
         setError(null);
         try {
             const response = await getEvents({ query, page, limit });
-            console.log("🚀 ~ fetchUsers ~ response:", response)
             if (!response) {
                 throw new Error('Failed to fetch users');
             };
