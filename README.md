@@ -2,6 +2,7 @@
 
 ![Vista del sistema de eventos](./public/assets/APP.webp)
 
+
 Una aplicación web moderna para la **creación de eventos**, administración de participantes y seguimiento de productos o actividades asignadas a cada persona. Además, permite realizar pagos en **cuotas o plazos**, con control de vencimientos y estados.
 
 ## 🚀 Tecnologías Utilizadas
