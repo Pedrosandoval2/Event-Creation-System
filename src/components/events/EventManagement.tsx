@@ -10,36 +10,14 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Badge } from "../ui/badge"
-import { DeleteConfirmModal } from './DeleteConfirmModal';
-import type { Customer, Event, EventCustomer, EventFormValuesI } from "@/pages/private/event/interfaces/event"
+import type { Event, EventFormValuesI } from "@/pages/private/event/interfaces/event"
 import { formatDate } from "@/utils/formatDate"
 import { formatCurrency } from "@/utils/formatCurrency"
 import { useGetEvents } from "@/hooks/useGetEvents"
 import { useDebounce } from "@/hooks/useDebounce"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { customerEvent } from "@/services/events/getCustomerEvent"
 
 
-const initialCustomers: Customer[] = [
-    { id: 101, name: "Juan Pérez" },
-    { id: 102, name: "María García" },
-    { id: 103, name: "Carlos López" },
-    { id: 104, name: "Ana Martínez" },
-]
-
-const initialEventCustomers: EventCustomer[] = [
-    {
-        id: 1,
-        customer: { id: 101, name: "Juan Pérez" },
-        event: { id: 1, title: "Pollada Benéfica" },
-        description: "Reserva para 4 personas",
-        payments: [{ id: 1, amount: 50, method: "Efectivo", date: "2025-07-20T10:00:00Z" }],
-        createdAt: "2025-07-22T12:45:00Z",
-        isActive: true,
-        quantity: 4,
-        total_price: 100.0,
-    },
-]
 
 export default function EventManagement() {
     const { theme, setTheme } = useContext(ThemeContext) as ThemeContextType
@@ -48,9 +26,6 @@ export default function EventManagement() {
     const [search, setSearch] = useState('');
     const [currentQuantity, setCurrentQuantity] = useState(limit?.toString());
     const debouncedSearch = useDebounce(search);
-
-    // const [customers] = useState<Customer[]>(initialCustomers)
-    const [eventCustomers, setEventCustomers] = useState<EventCustomer[]>(initialEventCustomers)
 
     const [selectedEvent, setSelectedEvent] = useState<EventFormValuesI>()
 
@@ -70,17 +45,12 @@ export default function EventManagement() {
     useEffect(() => {
         fetchEvents({ query: debouncedSearch || null, page, limit: Number(currentQuantity) });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedSearch, page, currentQuantity])
+    }, [debouncedSearch, page, currentQuantity]);
 
-    // Obtener clientes de un evento específico
-    // const getEventCustomers = (eventId: number) => {
-    //     return eventCustomers.filter((ec) => ec.event.id === eventId)
-    // }
 
     const onReloadEvent = () => {
         setSelectedEvent(undefined)
         fetchEvents({ query: debouncedSearch || null, page, limit: Number(currentQuantity) });
-
     }
 
     // Handlers para eventos
@@ -95,15 +65,6 @@ export default function EventManagement() {
         setIsEditing(true)
         setIsEventModalOpen(true)
     }
-
-    const handleDeleteEvent = (event: Event) => {
-        // setEventToDelete(event)
-        // setIsDeleteModalOpen(true)
-    }
-
-    // const confirmDeleteEvent = () => {
-
-    // }
 
     const handleManageCustomers = async (event: Event) => {
         setEvent({
@@ -231,7 +192,7 @@ export default function EventManagement() {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleDeleteEvent(event)}
+                                        // onClick={() => handleDeleteEvent(event)}
                                         className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -304,9 +265,7 @@ export default function EventManagement() {
                     isOpen={isCustomerModalOpen}
                     onClose={() => setIsCustomerModalOpen(false)}
                     event={event}
-                    // event={selectedEventForCustomers}
-                    // customers={customers}
-                    // eventCustomers={getEventCustomers(selectedEventForCustomers?.id || 0)}
+                    onReloadEvent={onReloadEvent}
                 />
             )}
 
