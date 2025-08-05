@@ -1,10 +1,10 @@
-import type { Customer } from "./event"
+import type { Customer } from "../../customers/interfaces/customers";
 
 export interface PaymentI {
     id: number;
     amount: number;
     method: string;
-    date: string;
+    createdAt: string;
 }
 
 export interface EventCustomer {
@@ -22,12 +22,28 @@ export interface EventCustomer {
     total_price: number;
 }
 
+export interface Payment {
+    amount: number;
+    method: string;
+}
+export interface CustomerEvent {
+    id: number;
+    firstName: string;
+    lastName: string;
+}
+
+export interface CreateCustomer {
+    customer: Customer;
+    description?: string;
+    quantity: number;
+    payments: Payment[];
+    eventId: number;
+}
+
 export interface CreateCustomerEventFormData {
     customerId: number;
     description?: string;
     quantity: number;
-    paymentsMount: number;
-    paymentMethod: string;
+    payments: Payment[];
     eventId: number;
 }
-
